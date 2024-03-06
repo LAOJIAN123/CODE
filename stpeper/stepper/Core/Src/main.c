@@ -22,6 +22,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "stepper_motor.h"
+#include "OLED.h"
+#include "Menu.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -35,7 +37,7 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-
+extern const uint8_t kunkun[13][512];
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -91,33 +93,72 @@ int main(void)
   //PWM初始化
   HAL_TIM_PWM_Init(&htim3);
   
+	
+	//OLED屏幕初始化
+	OLED_Init();
+	
+	//步进电机初始化
+	stepper_init();
+	
+	
 	// HAL_TIM_PWM_Start(&htim3,TIM_CHANNEL_1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  while (1)
-  {
-    /* USER CODE END WHILE */
-	
-	step_run(200);
-	
-	HAL_TIM_PWM_Start(&htim3,TIM_CHANNEL_1);		
-	HAL_Delay(10000);
-		
-	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_7,GPIO_PIN_SET);
-	HAL_TIM_PWM_Stop(&htim3,TIM_CHANNEL_1);
-	HAL_Delay(1000);
-		
-	HAL_TIM_PWM_Start(&htim3,TIM_CHANNEL_1);	
-	HAL_Delay(10000);
-		
-	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_7,GPIO_PIN_RESET);
-	HAL_TIM_PWM_Stop(&htim3,TIM_CHANNEL_1);
-	HAL_Delay(1000);	
+//  while (1)
+//  {
+//    /* USER CODE END WHILE */
+//	step_run(50);
+//	
+//	HAL_TIM_PWM_Start(&htim3,TIM_CHANNEL_1);		
+//	HAL_Delay(10000);								
+//		
+//	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_7,GPIO_PIN_SET);
+//	HAL_TIM_PWM_Stop(&htim3,TIM_CHANNEL_1);
+//	HAL_Delay(1000);
+//		
+//	HAL_TIM_PWM_Start(&htim3,TIM_CHANNEL_1);	
+//	HAL_Delay(10000);
+//		
+//	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_7,GPIO_PIN_RESET);
+//	HAL_TIM_PWM_Stop(&htim3,TIM_CHANNEL_1);
+//	HAL_Delay(1000);
+//		
+//		
+	uint8_t count = 0;
+	while (1)
+	{
+		while (1)
+	{
+		// Delay_ms(1000);
+		OLED_Clear();
 
+		//Menu_ShowWallpaper(Win11Wallpaper);
+		
+		//Menu_Showkunkun();
+		OLED_ShowImage(0,0,64, 64, kunkun[count++/10]);
+		OLED_ShowImage(64,0,64, 64, kunkun[count++/10]);
+		count %= 130;
+		if(Menu_Start(0) == 0)//如果初始化完成了
+		{
+			if (Menu_EnterEvent())
+			{
+				Menu_Start(1);
+			}
+			if (Menu_BackEvent())
+			{
+				//Power_Off();
+			}
+		}
+		OLED_Update();
+	}
+		//       +HAL_Delay(1000);
+	}
+
+		
     /* USER CODE BEGIN 3 */
-  }
+
   /* USER CODE END 3 */
 }
 
@@ -227,7 +268,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0|GPIO_PIN_8|GPIO_PIN_9, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : PA7 */
   GPIO_InitStruct.Pin = GPIO_PIN_7;
@@ -242,6 +283,26 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : PB4 PB5 PB6 PB7 */
+  GPIO_InitStruct.Pin = GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : PB8 PB9 */
+  GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_9;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI4_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI4_IRQn);
+
+  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
 
 }
 

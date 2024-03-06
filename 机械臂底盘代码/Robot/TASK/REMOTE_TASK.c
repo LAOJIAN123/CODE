@@ -28,7 +28,7 @@ void Remote_Task(void const * argument)
 				PS2_ReadREDData(); //读取遥控数据
 				//将遥控数据赋值给底盘结构体
 				Machine_chassis.moto_x = PS2_AnologData(LEFT_X)    -128 ;    
-				Machine_chassis.moto_y = -(PS2_AnologData(LEFT_Y) -127) ;
+				Machine_chassis.moto_y = (PS2_AnologData(LEFT_Y) -127) ;
 				Machine_chassis.moto_yaw = PS2_AnologData(RIGHT_X) -128 ;
 				
 			}
