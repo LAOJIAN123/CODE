@@ -138,7 +138,7 @@
           </Flash1>
           <bUseTDR>1</bUseTDR>
           <Flash2>BIN\UL2V8M.DLL</Flash2>
-          <Flash3></Flash3>
+          <Flash3>"" ()</Flash3>
           <Flash4></Flash4>
           <pFcarmOut></pFcarmOut>
           <pFcarmGrp></pFcarmGrp>
@@ -337,9 +337,9 @@
             <v6Rtti>0</v6Rtti>
             <VariousControls>
               <MiscControls>--no-multibyte-chars</MiscControls>
-              <Define>USE_HAL_DRIVER,STM32F103xB</Define>
+              <Define>USE_HAL_DRIVER,STM32F103x6</Define>
               <Undefine></Undefine>
-              <IncludePath>../Core/Inc;../Drivers/STM32F1xx_HAL_Driver/Inc;../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32F1xx/Include;../Drivers/CMSIS/Include;..\bsp\inc</IncludePath>
+              <IncludePath>../Core/Inc;../Drivers/STM32F1xx_HAL_Driver/Inc;../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32F1xx/Include;../Drivers/CMSIS/Include;..\..\CODE-main\stpeper\stepper\Solf\inc;..\bsp\inc;..\Solf\inc</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -513,6 +513,36 @@
               <FileType>1</FileType>
               <FilePath>..\bsp\src\stepper_motor.c</FilePath>
             </File>
+            <File>
+              <FileName>OLED_Data_ASCII.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\bsp\src\OLED_Data_ASCII.c</FilePath>
+            </File>
+            <File>
+              <FileName>OLED_Data_Hanzi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\bsp\src\OLED_Data_Hanzi.c</FilePath>
+            </File>
+            <File>
+              <FileName>OLED_Data_Hanzi_12x12.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\bsp\src\OLED_Data_Hanzi_12x12.c</FilePath>
+            </File>
+            <File>
+              <FileName>OLED_Data_Image.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\bsp\src\OLED_Data_Image.c</FilePath>
+            </File>
+            <File>
+              <FileName>OLED_Patch_byAdam.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\bsp\src\OLED_Patch_byAdam.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_dwt.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\bsp\src\bsp_dwt.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -554,5 +584,14 @@
     </components>
     <files/>
   </RTE>
+
+  <LayerInfo>
+    <Layers>
+      <Layer>
+        <LayName>stepper</LayName>
+        <LayPrjMark>1</LayPrjMark>
+      </Layer>
+    </Layers>
+  </LayerInfo>
 
 </Project>

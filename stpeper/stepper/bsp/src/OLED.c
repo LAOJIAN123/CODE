@@ -404,7 +404,7 @@ uint8_t OLED_IsInAngle(int16_t X, int16_t Y, int16_t StartAngle, int16_t EndAngl
   */
 void OLED_Update(void)
 {
-	{OLED_Printf(128-6*6, 0, 6,"FPS %d");	}	//显示帧率;解除注释开启
+//	{OLED_Printf(128-6*6, 0, 6,"FPS %d");	}	//显示帧率;解除注释开启
 	
 	uint8_t j;
 	/*遍历每一页*/

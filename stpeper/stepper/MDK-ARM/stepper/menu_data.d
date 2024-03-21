@@ -1,0 +1,9 @@
+stepper\menu_data.o: ..\Solf\src\menu_Data.c
+stepper\menu_data.o: ..\Solf\inc\Menu.h
+stepper\menu_data.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
+stepper\menu_data.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
+stepper\menu_data.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdarg.h
+stepper\menu_data.o: ..\bsp\inc\OLED.h
+stepper\menu_data.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+stepper\menu_data.o: ..\bsp\inc\OLED_Data.h
+stepper\menu_data.o: ..\bsp\inc\stepper_motor.h

@@ -1,7 +1,7 @@
 #include "Menu.h"
 #include "stepper_motor.h"
 
-char* run_status = "运行";
+char *run_status = "运行";
 
 extern const uint8_t goutou[];
 int8_t Menu_Start(int8_t Shift)
@@ -30,15 +30,14 @@ int8_t Menu_Start(int8_t Shift)
 	return 0;
 }
 
-
 /*创建选项列表*/
 struct Option_Class Menu_StartOptionList[] = {
-		{"<<<"},
-		{"启动",Step_Ver},
-		{"参数设置", Menu_RunToolsMenu},
-		{"系统设置", Menu_RunSettingMenu}, // 设置
-		{"关于", Menu_Information},		  // 信息
-		{".."}};
+	{"<<<"},
+	{"转动", Step_Ver},
+	{"参数设置", Menu_RunToolsMenu},
+	{"系统设置", Menu_RunSettingMenu}, // 设置
+	{"关于", Menu_Information},		   // 信息
+	{".."}};
 
 /*创建开始菜单对象*/
 struct Menu_Class Menu_StartMenu = {.isInit = 1};
@@ -54,37 +53,36 @@ void Menu_RunMainMenu(void)
 		Menu_StartMenu.Window_Y = 64;
 		Menu_Global.Cursor_Actual_X = 0;
 		Menu_Global.Cursor_Actual_Y = 64;
-	
+
 		/*******手动配置区*/
 	}
 
 	Menu_RunWindow(&Menu_StartMenu);
-                                                                       }
-
+}
+/*创建选项列表*/
+struct Option_Class Menu_ToolsOptionList[] = {
+	{"<<<"},
+	{"设置转速[60]", Set_Speed}, // 6-1 定时器定时中断
+	{"转动时间[1]",Set_Time},			 // 6-6 输入捕获模式测频率
+	{"停转时间[0]",Set_Stop_Time},
+	{"反转周期[0]",Set_Ver_Time},
+	{".."}};
 void Menu_RunToolsMenu(void)
 {
-	/*创建选项列表*/
-	static struct Option_Class Menu_ToolsOptionList[] = {
-		{"<<<"},
-		{"设置转速"}, // 6-1 定时器定时中断
-		{"设置转动时间"},				   // 6-6 输入捕获模式测频率
-		{"设置停转时间"},	
-		{".."}};
-	
+
 	/*创建菜单对象*/
-	static struct Menu_Class Menu_ToolsMenu = {.isInit = 1};	//赋值初始化
+	static struct Menu_Class Menu_ToolsMenu = {.isInit = 1}; // 赋值初始化
 
 	if (Menu_ToolsMenu.isInit)
 	{
 		Menu_MenuClassInit(&Menu_ToolsMenu, Menu_ToolsOptionList);
 		/*手动配置区*******/
-		
+
 		/*******手动配置区*/
 	}
-	
+
 	Menu_RunWindow(&Menu_ToolsMenu);
 }
-
 
 void Menu_Information(void)
 {

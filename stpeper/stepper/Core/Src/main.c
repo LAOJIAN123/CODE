@@ -1,20 +1,20 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file           : main.c
-  * @brief          : Main program body
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2024 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file           : main.c
+ * @brief          : Main program body
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2024 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
@@ -24,6 +24,7 @@
 #include "stepper_motor.h"
 #include "OLED.h"
 #include "Menu.h"
+#include "bsp_dwt.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -38,8 +39,23 @@
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
 extern const uint8_t kunkun[13][512];
-/* USER CODE END PM */
-
+extern const uint8_t XpWallpaper[];
+extern int run_time; // 转动时间单位ms
+extern int start_time;
+extern char motor_enable_flag;
+extern int stop_time;
+int timeline = 0;
+static int8_t Current_Ver = -1;
+extern int8_t ver;
+char aaa1;
+char aaa2;
+double ccc1;
+extern int smooth_time;
+extern int Smooth;
+extern TIM_HandleTypeDef stepper_tim;
+extern uint32_t timclock;
+extern int speed;
+extern struct stepper_motor motor;
 /* Private variables ---------------------------------------------------------*/
 TIM_HandleTypeDef htim3;
 
@@ -61,9 +77,9 @@ static void MX_TIM3_Init(void);
 /* USER CODE END 0 */
 
 /**
-  * @brief  The application entry point.
-  * @retval int
-  */
+ * @brief  The application entry point.
+ * @retval int
+ */
 int main(void)
 {
   /* USER CODE BEGIN 1 */
@@ -90,90 +106,140 @@ int main(void)
   MX_GPIO_Init();
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
-  //PWM初始化
+  // PWM初始化
   HAL_TIM_PWM_Init(&htim3);
-  
-	
-	//OLED屏幕初始化
-	OLED_Init();
-	
-	//步进电机初始化
-	stepper_init();
-	
-	
-	// HAL_TIM_PWM_Start(&htim3,TIM_CHANNEL_1);
-  /* USER CODE END 2 */
+  DWT_Init(72);
 
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
-//  while (1)
-//  {
-//    /* USER CODE END WHILE */
-//	step_run(50);
-//	
-//	HAL_TIM_PWM_Start(&htim3,TIM_CHANNEL_1);		
-//	HAL_Delay(10000);								
-//		
-//	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_7,GPIO_PIN_SET);
-//	HAL_TIM_PWM_Stop(&htim3,TIM_CHANNEL_1);
-//	HAL_Delay(1000);
-//		
-//	HAL_TIM_PWM_Start(&htim3,TIM_CHANNEL_1);	
-//	HAL_Delay(10000);
-//		
-//	HAL_GPIO_WritePin(GPIOA,GPIO_PIN_7,GPIO_PIN_RESET);
-//	HAL_TIM_PWM_Stop(&htim3,TIM_CHANNEL_1);
-//	HAL_Delay(1000);
-//		
-//		
-	uint8_t count = 0;
-	while (1)
-	{
-		while (1)
-	{
-		// Delay_ms(1000);
-		OLED_Clear();
+  // OLED屏幕初始化
+  OLED_Init();
 
-		//Menu_ShowWallpaper(Win11Wallpaper);
-		
-		//Menu_Showkunkun();
-		OLED_ShowImage(0,0,64, 64, kunkun[count++/10]);
-		OLED_ShowImage(64,0,64, 64, kunkun[count++/10]);
-		count %= 130;
-		if(Menu_Start(0) == 0)//如果初始化完成了
-		{
-			if (Menu_EnterEvent())
-			{
-				Menu_Start(1);
-			}
-			if (Menu_BackEvent())
-			{
-				//Power_Off();
-			}
-		}
-		OLED_Update();
-	}
-		//       +HAL_Delay(1000);
-	}
+  // 步进电机初始化
+  stepper_init();
 
-		
-    /* USER CODE BEGIN 3 */
+
+  while (1)
+  {
+    timeline = DWT_GetTimeline_ms();
+    if (motor_enable_flag)
+    {
+      if ((start_time + run_time) < (timeline))  //只要当前时间超出 开跑时刻和时间 就执行
+      {
+        if ((start_time + run_time + stop_time) < (timeline))//当前时间超出 开跑时刻和时间 停止时刻时间  就重置
+          start_time = timeline;
+        else  //超出开跑时间，但是在停止时间内
+        {
+          motor_disable();
+					
+					smooth_time = DWT_GetTimeline_ms();
+					motor.open_flag = ON;
+        }
+
+        // 究极屎山
+        if (motor.ver == Foreward) // 当电机转向突变
+        {
+
+          
+					
+					
+          if (ver != -1)
+          {
+
+            if (Current_Ver == ver)
+            {
+              HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, 1 ^ HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_7));
+							smooth_time = DWT_GetTimeline_ms();
+							motor.open_flag = ON;
+              Current_Ver = 0;
+            }
+            else
+            {
+              Current_Ver++;
+            }
+          }
+          if (Current_Ver == -1)
+            Current_Ver = 0;
+        }
+
+        motor.ver = Reversal;
+        // 究极屎山
+      }
+      else
+      {
+        motor_enable();
+
+        // 究极屎山
+        if (motor.ver == Reversal) // 当电机转向突变
+        {
+          motor.ver = Reversal;
+        }
+        motor.ver = Foreward;
+        // 究极屎山
+      }
+
+      if (motor.open_flag == ON)
+      {
+        if ((smooth_time + Smooth) < DWT_GetTimeline_ms())
+        {
+           motor.open_flag = OFF;
+          __HAL_TIM_SET_AUTORELOAD(&stepper_tim, (double)GET_TIM_F / (double)RAD2PWM(speed));	
+        }
+        else
+        {
+         ccc1 = ((double)(DWT_GetTimeline_ms() - (float)smooth_time));
+					__HAL_TIM_SET_AUTORELOAD(&stepper_tim, ((double)GET_TIM_F / (double)RAD2PWM(speed)) * (double)((DWT_GetTimeline_ms() - (double)smooth_time) / 100.0));
+        }
+      }
+			
+			
+			
+			
+    }
+    else
+      motor_disable();
+    step_run();
+    // Delay_ms(1000);
+    OLED_Clear();
+
+    Menu_ShowWallpaper(XpWallpaper);
+
+    // Menu_Showkunkun();
+    //		OLED_ShowImage(0,0,64, 64, kunkun[count++/10]);
+
+    //		OLED_ShowImage(64,0,64, 64, kunkun[count++/10]);
+    //		count %= 130;
+    if (Menu_Start(0) == 0) // 如果初始化完成了
+    {
+      if (Menu_EnterEvent())
+      {
+        Menu_Start(1);
+      }
+      if (Menu_BackEvent())
+      {
+        // Power_Off();
+      }
+    }
+    OLED_Update();
+		HAL_Delay(1);
+  }
+  //       +HAL_Delay(1000);
+
+  /* USER CODE BEGIN 3 */
 
   /* USER CODE END 3 */
 }
 
 /**
-  * @brief System Clock Configuration
-  * @retval None
-  */
+ * @brief System Clock Configuration
+ * @retval None
+ */
 void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
   /** Initializes the RCC Oscillators according to the specified parameters
-  * in the RCC_OscInitTypeDef structure.
-  */
+   * in the RCC_OscInitTypeDef structure.
+   */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
@@ -187,9 +253,8 @@ void SystemClock_Config(void)
   }
 
   /** Initializes the CPU, AHB and APB buses clocks
-  */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+   */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
@@ -202,10 +267,10 @@ void SystemClock_Config(void)
 }
 
 /**
-  * @brief TIM3 Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief TIM3 Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_TIM3_Init(void)
 {
 
@@ -247,14 +312,13 @@ static void MX_TIM3_Init(void)
 
   /* USER CODE END TIM3_Init 2 */
   HAL_TIM_MspPostInit(&htim3);
-
 }
 
 /**
-  * @brief GPIO Initialization Function
-  * @param None
-  * @retval None
-  */
+ * @brief GPIO Initialization Function
+ * @param None
+ * @retval None
+ */
 static void MX_GPIO_Init(void)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
@@ -268,7 +332,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_7, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0|GPIO_PIN_8|GPIO_PIN_9, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0 | GPIO_PIN_8 | GPIO_PIN_9, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : PA7 */
   GPIO_InitStruct.Pin = GPIO_PIN_7;
@@ -285,13 +349,13 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PB4 PB5 PB6 PB7 */
-  GPIO_InitStruct.Pin = GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7;
+  GPIO_InitStruct.Pin = GPIO_PIN_4 | GPIO_PIN_5 | GPIO_PIN_6 | GPIO_PIN_7;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PB8 PB9 */
-  GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_9;
+  GPIO_InitStruct.Pin = GPIO_PIN_8 | GPIO_PIN_9;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -303,7 +367,6 @@ static void MX_GPIO_Init(void)
 
   HAL_NVIC_SetPriority(EXTI9_5_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
-
 }
 
 /* USER CODE BEGIN 4 */
@@ -311,9 +374,9 @@ static void MX_GPIO_Init(void)
 /* USER CODE END 4 */
 
 /**
-  * @brief  This function is executed in case of error occurrence.
-  * @retval None
-  */
+ * @brief  This function is executed in case of error occurrence.
+ * @retval None
+ */
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
@@ -325,14 +388,14 @@ void Error_Handler(void)
   /* USER CODE END Error_Handler_Debug */
 }
 
-#ifdef  USE_FULL_ASSERT
+#ifdef USE_FULL_ASSERT
 /**
-  * @brief  Reports the name of the source file and the source line number
-  *         where the assert_param error has occurred.
-  * @param  file: pointer to the source file name
-  * @param  line: assert_param error line source number
-  * @retval None
-  */
+ * @brief  Reports the name of the source file and the source line number
+ *         where the assert_param error has occurred.
+ * @param  file: pointer to the source file name
+ * @param  line: assert_param error line source number
+ * @retval None
+ */
 void assert_failed(uint8_t *file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */
